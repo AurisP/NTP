@@ -52,7 +52,7 @@ static void wait_rest_of_period()
 	int result = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &sleep_time, NULL);
     	if (result != 0) {
         // Handle error (print error message or take appropriate action)
-        fprintf(stderr, "clock_nanosleep failed: %d\n", result);
+        //fprintf(stderr, "clock_nanosleep failed: %d\n", result);
     }
         //clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &sleep_time, NULL);
 }
@@ -60,7 +60,7 @@ static void wait_rest_of_period()
 static void do_rt_task(int h)
 {
         /* Do RT stuff here. */
-	printf("toggle pin");
+	//printf("toggle pin");
     	lgGpioWrite(h,GPIO_PIN,1);
 	sleep(1.3);
 	lgGpioWrite(h,GPIO_PIN,0);
@@ -72,11 +72,11 @@ void *thread_func(void *data)
 {
 //      struct period_info pinfo;
 // 	periodic_task_init(&pinfo);
-	printf("started thread/n");
+	//printf("started thread/n");
 	int h;
 	h = lgGpiochipOpen(4); // Open the first GPIO chip (gpiochip0)
 	if (h < 0) {
-        	fprintf(stderr, "Error opening GPIO chip: %d\n", h);
+        //	fprintf(stderr, "Error opening GPIO chip: %d\n", h);
 	}	
         lgGpioClaimOutput(h,0,GPIO_PIN,0);
 	/* Do RT specific stuff here */

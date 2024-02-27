@@ -71,15 +71,23 @@ void *bgThread_func(void *arg) {
     	// Background thread logic here
     	// Flush data from ring buffer
     	// Example:
+	FILE *file;
+	file = fopen("output.txt", "w");
+    		if (file == NULL) {
+        	perror("Error opening file");
+        	return NULL;
+    	}
    	while (1) {
         	// Check if there's data to flush
         	if (ringBuffer.head != ringBuffer.tail) {
             	// Flush data
-            	printf("Data: %ld\n", ringBuffer.buffer[ringBuffer.tail++].time_value.tv_nsec);
-            	ringBuffer.tail %= BUFFER_SIZE;
-        	}
+            	printf("Data: %ld\n", ringBuffer.buffer[ringBuffer.tail].time_value.tv_nsec);
+		fprintf(file, "%ld\n", ringBuffer.buffer[ringBuffer.tail].time_value.tv_nsec);
+            	ringBuffer.tail = (ringBuffer.tail + 1) % BUFFER_SIZE;  
+		}
         // Add sleep or yield if necessary
     	}
+	fclose(file);
     	return NULL;
 }
 
@@ -93,18 +101,17 @@ void *thread_func(void *data)
 	int h;
 	h = lgGpiochipOpen(4); // Open the first GPIO chip (gpiochip0)
 	if (h < 0) {
-        	fprintf(stderr, "Error opening GPIO chip: %d\n", h);
+        	//fprintf(stderr, "Error opening GPIO chip: %d\n", h);
 	}	
-        lgGpioClaimOutput(h,0,GPIO_PIN,0);
+        lgGpioClaimInput(h,LG_SET_PULL_DOWN,GPIO_PIN);
 	/* Do RT specific stuff here */
 	while (1) 
 	{
 		if (lgGpioRead(h,GPIO_PIN) == 1) {
 			clock_gettime(CLOCK_REALTIME, &time_value);
-			memcpy(ringBuffer.buffer[ringBuffer.head].time_value, time_value, sizeof(struct timespec));	
-			buffer->head++;
-    			buffer->head %= BUFFER_SIZE;
-			}
+			memcpy(&ringBuffer.buffer[ringBuffer.head].time_value, &time_value, sizeof(struct timespec));	
+			ringBuffer.head = (ringBuffer.head + 1) % BUFFER_SIZE;
+			sleep(1.6);}
 		//do_rt_task(h);
 		//wait_rest_of_period();
 	}
@@ -165,7 +172,7 @@ int main(int argc, char* argv[])
         }
  
  	/* Create a pthread with specified attributes */
-        ret2 = pthread_create(&thread, NULL, bgThread_func, NULL);
+        ret2 = pthread_create(&bgThread, NULL, bgThread_func, NULL);
         if (ret2) {
                 printf("create bgpthread failed\n");
                 goto out;
