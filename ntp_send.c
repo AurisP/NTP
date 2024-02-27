@@ -52,9 +52,11 @@ static void wait_rest_of_period()
 static void do_rt_task(int h)
 {
         /* Do RT stuff here. */
-	static int state = 0; // Initial state
-    	lgGpioWrite(h,17,state);
-	state = !state; // Toggle state
+    	lgGpioWrite(h,17,1);
+	sleep(0.3);
+	lgGpioWrite(h,17,0);
+
+	
 }
 
 void *thread_func(void *data)
