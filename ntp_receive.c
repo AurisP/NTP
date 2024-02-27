@@ -12,6 +12,7 @@
 #include <linux/gpio.h>
 #include <time.h>
 #include <lgpio.h>
+#include <unistd.h>
 #define GPIO_PIN 17
 /*
 struct period_info {
@@ -59,7 +60,7 @@ void *thread_func(void *data)
 {
 //      struct period_info pinfo;
 // 	periodic_task_init(&pinfo);
-	
+	struct timespec read_time;
 	int state; // Initial state
 	int h;
 	h = lgGpiochipOpen(4); // Open the first GPIO chip (gpiochip0)
@@ -70,8 +71,10 @@ void *thread_func(void *data)
 	/* Do RT specific stuff here */
 	while (1) 
 	{
-		if (lgGpioRead(h,GPIO_PIN) == 1)
-			printf("Update detected");
+		if (lgGpioRead(h,GPIO_PIN) == 1) {
+			clock_gettime(CLOCK_REALTIME, &read_time);
+			printf("Update detected S:%ld ns:%ld\n", read_time.tv_sec, read_time.tv_nsec);
+		}
 		//do_rt_task(h);
 		//wait_rest_of_period();
 	}
