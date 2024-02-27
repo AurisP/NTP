@@ -13,6 +13,7 @@
 #include <time.h>
 #include <lgpio.h>
 #include <unistd.h>
+#include <string.h>
 #define GPIO_PIN 17
 /*
 struct period_info {
@@ -50,17 +51,44 @@ static void wait_rest_of_period()
         clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &sleep_time, NULL);
 }
 */
-static void do_rt_task(int h)
-{
-        /* Do RT stuff here. */
-    		 // Toggle state
+#define BUFFER_SIZE 100
+
+typedef struct {
+    	struct timespec time_value;
+    	// Add any other fields as needed
+} BufferElement;
+
+typedef struct {
+	BufferElement buffer[BUFFER_SIZE];
+    	int head;
+    	int tail;
+    	// Add any other fields as needed
+} RingBuffer;
+
+RingBuffer ringBuffer;
+
+void *bgThread_func(void *arg) {
+    	// Background thread logic here
+    	// Flush data from ring buffer
+    	// Example:
+   	while (1) {
+        	// Check if there's data to flush
+        	if (ringBuffer.head != ringBuffer.tail) {
+            	// Flush data
+            	printf("Data: %ld\n", ringBuffer.buffer[ringBuffer.tail++].time_value.tv_nsec);
+            	ringBuffer.tail %= BUFFER_SIZE;
+        	}
+        // Add sleep or yield if necessary
+    	}
+    	return NULL;
 }
+
 
 void *thread_func(void *data)
 {
 //      struct period_info pinfo;
 // 	periodic_task_init(&pinfo);
-	struct timespec read_time;
+	struct timespec time_value;
 	int state; // Initial state
 	int h;
 	h = lgGpiochipOpen(4); // Open the first GPIO chip (gpiochip0)
@@ -72,9 +100,11 @@ void *thread_func(void *data)
 	while (1) 
 	{
 		if (lgGpioRead(h,GPIO_PIN) == 1) {
-			clock_gettime(CLOCK_REALTIME, &read_time);
-			printf("Update detected S:%ld ns:%ld\n", read_time.tv_sec, read_time.tv_nsec);
-		}
+			clock_gettime(CLOCK_REALTIME, &time_value);
+			memcpy(ringBuffer.buffer[ringBuffer.head].time_value, time_value, sizeof(struct timespec));	
+			buffer->head++;
+    			buffer->head %= BUFFER_SIZE;
+			}
 		//do_rt_task(h);
 		//wait_rest_of_period();
 	}
@@ -85,8 +115,8 @@ int main(int argc, char* argv[])
 {
         struct sched_param param;
         pthread_attr_t attr;
-        pthread_t thread;
-        int ret;
+        pthread_t thread, bgThread;
+        int ret, ret2;
     	
 	/* Lock memory */
         if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
@@ -134,11 +164,23 @@ int main(int argc, char* argv[])
                 goto out;
         }
  
+ 	/* Create a pthread with specified attributes */
+        ret2 = pthread_create(&thread, NULL, bgThread_func, NULL);
+        if (ret2) {
+                printf("create bgpthread failed\n");
+                goto out;
+        }
+ 
+
         /* Join the thread and wait until it is done */
         ret = pthread_join(thread, NULL);
         if (ret)
                 printf("join pthread failed: %m\n");
  
-out:
-        return ret;
+        /* Join the thread and wait until it is done */
+        ret2 = pthread_join(bgThread, NULL);
+        if (ret2)
+                printf("join bgpthread failed: %m\n");
+out: 
+	return ret;
 }
