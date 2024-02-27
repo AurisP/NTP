@@ -43,16 +43,17 @@ static void wait_rest_of_period()
         //inc_period(pinfo);
  	struct timespec sleep_time;
 	clock_gettime(CLOCK_REALTIME, &sleep_time);
+	sleep_time.tv_nsec =  1000000000L - sleep_time.tv_nsec;
 
-        /* for simplicity, ignoring possibilities of signal wakes */
-        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, (1000000000L - sleep_time.tv_nsec), NULL);
+	/* for simplicity, ignoring possibilities of signal wakes */
+        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &sleep_time, NULL);
 }
 
-static void do_rt_task()
+static void do_rt_task(int h)
 {
         /* Do RT stuff here. */
 	static int state = 0; // Initial state
-    	gpiod_set_value(GPIO_PIN, state);
+    	lgGpioWrite(h,17,state);
 	state = !state; // Toggle state
 }
 
@@ -60,11 +61,16 @@ void *thread_func(void *data)
 {
 //      struct period_info pinfo;
 // 	periodic_task_init(&pinfo);
-
+	int h;
+	h = lgGpiochipOpen(4); // Open the first GPIO chip (gpiochip0)
+	if (h < 0) {
+        	fprintf(stderr, "Error opening GPIO chip: %d\n", h);
+	}	
+        lgGpioClaimOutput(h,0,GPIO_PIN,0);
 	/* Do RT specific stuff here */
 	while (1) 
 	{
-		do_rt_task();
+		do_rt_task(h);
 		wait_rest_of_period();
 	}
         return NULL;
@@ -76,8 +82,8 @@ int main(int argc, char* argv[])
         pthread_attr_t attr;
         pthread_t thread;
         int ret;
- 
-        /* Lock memory */
+    	
+	/* Lock memory */
         if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
                 printf("mlockall failed: %m\n");
                 exit(-2);
