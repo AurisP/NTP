@@ -37,7 +37,7 @@ static void periodic_task_init(struct period_info *pinfo)
         clock_gettime(CLOCK_MONOTONIC, &(pinfo->next_period));
 }
  
-*/ 
+ 
 static void wait_rest_of_period()
 {
         //inc_period(pinfo);
@@ -45,22 +45,22 @@ static void wait_rest_of_period()
 	clock_gettime(CLOCK_REALTIME, &sleep_time);
 	sleep_time.tv_nsec =  1000000000L - sleep_time.tv_nsec;
 
-	/* for simplicity, ignoring possibilities of signal wakes */
+	 for simplicity, ignoring possibilities of signal wakes:
         clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &sleep_time, NULL);
 }
-
+*/
 static void do_rt_task(int h)
 {
         /* Do RT stuff here. */
-	static int state = 0; // Initial state
-    	lgGpioWrite(h,17,state);
-	state = !state; // Toggle state
+    		 // Toggle state
 }
 
 void *thread_func(void *data)
 {
 //      struct period_info pinfo;
 // 	periodic_task_init(&pinfo);
+	
+	int state; // Initial state
 	int h;
 	h = lgGpiochipOpen(4); // Open the first GPIO chip (gpiochip0)
 	if (h < 0) {
@@ -70,8 +70,10 @@ void *thread_func(void *data)
 	/* Do RT specific stuff here */
 	while (1) 
 	{
-		do_rt_task(h);
-		wait_rest_of_period();
+		if (lgGpioRead(h,GPIO_PIN) == 1)
+			printf("Update detected");
+		//do_rt_task(h);
+		//wait_rest_of_period();
 	}
         return NULL;
 }
