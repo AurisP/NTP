@@ -12,6 +12,7 @@
 #include <linux/gpio.h>
 #include <time.h>
 #include <lgpio.h>
+#include <unistd.h>
 #define GPIO_PIN 17
 /*
 struct period_info {
