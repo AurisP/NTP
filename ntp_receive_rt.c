@@ -15,42 +15,7 @@
 #include <unistd.h>
 #include <string.h>
 #define GPIO_PIN 17
-/*
-struct period_info {
-        struct timespec next_period;
-        long period_ns;
-};
 
-static void inc_period(struct period_info *pinfo) 
-{
-        pinfo->next_period.tv_nsec += pinfo->period_ns;
- 
-        while (pinfo->next_period.tv_nsec >= 1000000000) {
-                * timespec nsec overflow *
-                pinfo->next_period.tv_sec++;
-                pinfo->next_period.tv_nsec -= 1000000000;
-        }
-}
- 
-static void periodic_task_init(struct period_info *pinfo)
-{
-        pinfo->period_ns = 1000000;
- 
-        clock_gettime(CLOCK_MONOTONIC, &(pinfo->next_period));
-}
- 
- 
-static void wait_rest_of_period()
-{
-        //inc_period(pinfo);
- 	struct timespec sleep_time;
-	clock_gettime(CLOCK_REALTIME, &sleep_time);
-	sleep_time.tv_nsec =  1000000000L - sleep_time.tv_nsec;
-
-	 for simplicity, ignoring possibilities of signal wakes:
-        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &sleep_time, NULL);
-}
-*/
 #define BUFFER_SIZE 100
 
 typedef struct {
@@ -71,23 +36,16 @@ void *bgThread_func(void *arg) {
     	// Background thread logic here
     	// Flush data from ring buffer
     	// Example:
-	FILE *file;
-	file = fopen("output.txt", "w");
-    		if (file == NULL) {
-        	perror("Error opening file");
-        	return NULL;
-    	}
    	while (1) {
         	// Check if there's data to flush
         	if (ringBuffer.head != ringBuffer.tail) {
             	// Flush data
             	printf("Data: %ld\n", ringBuffer.buffer[ringBuffer.tail].time_value.tv_nsec);
-		fprintf(file, "%ld\n", ringBuffer.buffer[ringBuffer.tail].time_value.tv_nsec);
-            	ringBuffer.tail = (ringBuffer.tail + 1) % BUFFER_SIZE;  
+		fflush(stdout);
+		ringBuffer.tail = (ringBuffer.tail + 1) % BUFFER_SIZE;  
 		}
         // Add sleep or yield if necessary
     	}
-	fclose(file);
     	return NULL;
 }
 
@@ -151,7 +109,7 @@ int main(int argc, char* argv[])
                 printf("pthread setschedpolicy failed\n");
                 goto out;
         }
-        param.sched_priority = 80;
+        param.sched_priority = 95;
         ret = pthread_attr_setschedparam(&attr, &param);
         if (ret) {
                 printf("pthread setschedparam failed\n");
