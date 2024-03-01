@@ -15,42 +15,6 @@
 #include <unistd.h>
 #include <string.h>
 #define GPIO_PIN 17
-/*
-struct period_info {
-        struct timespec next_period;
-        long period_ns;
-};
-
-static void inc_period(struct period_info *pinfo) 
-{
-        pinfo->next_period.tv_nsec += pinfo->period_ns;
- 
-        while (pinfo->next_period.tv_nsec >= 1000000000) {
-                * timespec nsec overflow *
-                pinfo->next_period.tv_sec++;
-                pinfo->next_period.tv_nsec -= 1000000000;
-        }
-}
- 
-static void periodic_task_init(struct period_info *pinfo)
-{
-        pinfo->period_ns = 1000000;
- 
-        clock_gettime(CLOCK_MONOTONIC, &(pinfo->next_period));
-}
- 
- 
-static void wait_rest_of_period()
-{
-        //inc_period(pinfo);
- 	struct timespec sleep_time;
-	clock_gettime(CLOCK_REALTIME, &sleep_time);
-	sleep_time.tv_nsec =  1000000000L - sleep_time.tv_nsec;
-
-	 for simplicity, ignoring possibilities of signal wakes:
-        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &sleep_time, NULL);
-}
-*/
 #define BUFFER_SIZE 100
 
 typedef struct {
@@ -80,6 +44,7 @@ void *bgThread_func(void *arg) {
 		fflush(stdout);
 		ringBuffer.tail = (ringBuffer.tail + 1) % BUFFER_SIZE;  
 		}
+	sleep(1.6);
         // Add sleep or yield if necessary
     	}
     	return NULL;

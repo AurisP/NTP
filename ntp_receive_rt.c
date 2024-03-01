@@ -45,6 +45,7 @@ void *bgThread_func(void *arg) {
 		ringBuffer.tail = (ringBuffer.tail + 1) % BUFFER_SIZE;  
 		}
         // Add sleep or yield if necessary
+	sleep(1.6);
     	}
     	return NULL;
 }
@@ -55,7 +56,6 @@ void *thread_func(void *data)
 //      struct period_info pinfo;
 // 	periodic_task_init(&pinfo);
 	struct timespec time_value;
-	int state; // Initial state
 	int h;
 	h = lgGpiochipOpen(4); // Open the first GPIO chip (gpiochip0)
 	if (h < 0) {
