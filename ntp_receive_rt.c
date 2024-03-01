@@ -97,6 +97,7 @@ void *thread_func(void *data)
 //      struct period_info pinfo;
 // 	periodic_task_init(&pinfo);
 	struct timespec time_value;
+	int state; // Initial state
 	int h;
 	h = lgGpiochipOpen(4); // Open the first GPIO chip (gpiochip0)
 	if (h < 0) {
@@ -119,11 +120,52 @@ void *thread_func(void *data)
 
 int main(int argc, char* argv[])
 {
+        struct sched_param param;
+        pthread_attr_t attr;
         pthread_t thread, bgThread;
         int ret, ret2;
     	
+	/* Lock memory */
+        if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
+                printf("mlockall failed: %m\n");
+                exit(-2);
+        }
+ 
+        /* Initialize pthread attributes (default values) */
+        ret = pthread_attr_init(&attr);
+        if (ret) {
+                printf("init pthread attributes failed\n");
+                goto out;
+        }
+ 
+        /* Set a specific stack size  */
+        ret = pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN);
+        if (ret) {
+            printf("pthread setstacksize failed\n");
+            goto out;
+        }
+ 
+        /* Set scheduler policy and priority of pthread */
+        ret = pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+        if (ret) {
+                printf("pthread setschedpolicy failed\n");
+                goto out;
+        }
+        param.sched_priority = 80;
+        ret = pthread_attr_setschedparam(&attr, &param);
+        if (ret) {
+                printf("pthread setschedparam failed\n");
+                goto out;
+        }
+        /* Use scheduling parameters of attr */
+        ret = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+        if (ret) {
+                printf("pthread setinheritsched failed\n");
+                goto out;
+        }
+ 
         /* Create a pthread with specified attributes */
-        ret = pthread_create(&thread, NULL, thread_func, NULL);
+        ret = pthread_create(&thread, &attr, thread_func, NULL);
         if (ret) {
                 printf("create pthread failed\n");
                 goto out;
