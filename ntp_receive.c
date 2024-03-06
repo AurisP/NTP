@@ -35,12 +35,12 @@ void *bgThread_func(void *arg) {
     	// Background thread logic here
     	// Flush data from ring buffer
     	// Example:
-	
+	int count = 0;	
    	while (1) {
         	// Check if there's data to flush
         	if (ringBuffer.head != ringBuffer.tail) {
             	// Flush data
-            	printf("Data: %ld\n", ringBuffer.buffer[ringBuffer.tail].time_value.tv_nsec);
+            	printf("%d: %ld\n", count++, ringBuffer.buffer[ringBuffer.tail].time_value.tv_nsec);
 		fflush(stdout);
 		ringBuffer.tail = (ringBuffer.tail + 1) % BUFFER_SIZE;  
 		}

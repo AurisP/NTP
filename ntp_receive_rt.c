@@ -16,7 +16,7 @@
 #include <string.h>
 #define GPIO_PIN 17
 
-#define BUFFER_SIZE 100
+#define BUFFER_SIZE 1000
 
 typedef struct {
     	struct timespec time_value;
@@ -36,11 +36,12 @@ void *bgThread_func(void *arg) {
     	// Background thread logic here
     	// Flush data from ring buffer
     	// Example:
+	int count = 0;
    	while (1) {
         	// Check if there's data to flush
         	if (ringBuffer.head != ringBuffer.tail) {
             	// Flush data
-            	printf("Data: %ld\n", ringBuffer.buffer[ringBuffer.tail].time_value.tv_nsec);
+            	printf("%d: %ld\n", count++, ringBuffer.buffer[ringBuffer.tail].time_value.tv_nsec);
 		fflush(stdout);
 		ringBuffer.tail = (ringBuffer.tail + 1) % BUFFER_SIZE;  
 		}
@@ -67,6 +68,7 @@ void *thread_func(void *data)
 	{
 		if (lgGpioRead(h,GPIO_PIN) == 1) {
 			clock_gettime(CLOCK_REALTIME, &time_value);
+			time_value.tv_nsec -= 200000000L;
 			memcpy(&ringBuffer.buffer[ringBuffer.head].time_value, &time_value, sizeof(struct timespec));	
 			ringBuffer.head = (ringBuffer.head + 1) % BUFFER_SIZE;
 			sleep(1.6);}
