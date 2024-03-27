@@ -36,17 +36,17 @@ void *bgThread_func(void *arg) {
     	// Background thread logic here
     	// Flush data from ring buffer
     	// Example:
-	int count = 0;
+	//int count = 0;
    	while (1) {
         	// Check if there's data to flush
         	if (ringBuffer.head != ringBuffer.tail) {
             	// Flush data
-            	printf("%d: %ld\n", count++, ringBuffer.buffer[ringBuffer.tail].time_value.tv_nsec);
+            	printf("%ld: %ld\n", ringBuffer.buffer[ringBuffer.tail].time_value.tv_sec, ringBuffer.buffer[ringBuffer.tail].time_value.tv_nsec);
 		fflush(stdout);
 		ringBuffer.tail = (ringBuffer.tail + 1) % BUFFER_SIZE;  
 		}
         // Add sleep or yield if necessary
-	sleep(1.6);
+	sleep(1.5);
     	}
     	return NULL;
 }
@@ -71,7 +71,7 @@ void *thread_func(void *data)
 			time_value.tv_nsec -= 200000000L;
 			memcpy(&ringBuffer.buffer[ringBuffer.head].time_value, &time_value, sizeof(struct timespec));	
 			ringBuffer.head = (ringBuffer.head + 1) % BUFFER_SIZE;
-			sleep(1.6);}
+			sleep(1.2);}
 		//do_rt_task(h);
 		//wait_rest_of_period();
 	}
