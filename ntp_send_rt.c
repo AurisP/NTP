@@ -62,8 +62,9 @@ static void do_rt_task(int h)
         /* Do RT stuff here. */
 	//printf("toggle pin");
     	lgGpioWrite(h,GPIO_PIN,1);
-	sleep(1.3);
+	sleep(0.3);
 	lgGpioWrite(h,GPIO_PIN,0);
+	sleep(1);
 
 	
 }

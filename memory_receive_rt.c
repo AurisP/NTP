@@ -62,7 +62,7 @@ void *bgThread_func(void *arg) {
                 ringBuffer.tail = (ringBuffer.tail + 1) % BUFFER_SIZE;
                 }
         // Add sleep or yield if necessary
-        sleep(2);
+        sleep(1.5);
         }
         return NULL;
 }
