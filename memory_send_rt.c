@@ -12,7 +12,7 @@
 #include <sched.h>
 #include <linux/gpio.h>
 
-#define GPIO_PIN 18
+#define GPIO_PIN 17
 
 
 typedef struct{
@@ -45,7 +45,7 @@ static void wait_rest_of_period()
         clock_gettime(CLOCK_REALTIME, &sleep_time);
         //long remaining_nanos = 1000000000L - sleep_time.tv_nsec;
         sleep_time.tv_nsec = 200000000L;
-        sleep_time.tv_sec += 1;
+        sleep_time.tv_sec += 2;
         /* for simplicity, ignoring possibilities of signal wakes */
         //printf("%ld ", sleep_time.tv_sec);
         int result = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &sleep_time, NULL);
@@ -90,7 +90,7 @@ void *thread_func(void *data)
     while (1)
     {
         rioXOR->Out = 0x01<<pin;
-        sleep(0.3);
+        usleep(300000);
         rioXOR->Out = 0x01<<pin;
         wait_rest_of_period();
     }
