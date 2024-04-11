@@ -52,7 +52,6 @@ void *bgThread_func(void *arg) {
         // Background thread logic here
         // Flush data from ring buffer
         // Example:
-        int count = 0;
         while (1) {
                 // Check if there's data to flush
                 if (ringBuffer.head != ringBuffer.tail) {
@@ -62,7 +61,7 @@ void *bgThread_func(void *arg) {
                 ringBuffer.tail = (ringBuffer.tail + 1) % BUFFER_SIZE;
                 }
         // Add sleep or yield if necessary
-        sleep(1.5);
+        usleep(1700000);
         }
         return NULL;
 }
@@ -88,27 +87,26 @@ void *thread_func(void *data)
     close(memfd);
     uint32_t *PERIBase = map;
     uint32_t *GPIOBase = PERIBase + 0xD0000 / 4;
-    uint32_t *RIOBase = PERIBase + 0xe0000 / 4;
     uint32_t *PADBase = PERIBase + 0xf0000 / 4;
     uint32_t *pad = PADBase + 1;   
     
     uint32_t pin = GPIO_PIN;
-    uint32_t fn = 5;
     //GPIO[pin].ctrl=fn;
-    //pad[pin] = 0x44;
+    pad[pin] = 0x44;
     //rioSET->OE = 0x00<<pin;
     //rioSET-> = 0x01<<pin;
     volatile uint32_t *addrGP0Status = GPIOBase + (pin * 8 / 4);
     while (1)
     {
        int32_t value = *addrGP0Status;
+      //printf("%ld\n", value);
        if (value & (1 << 23))
-       {
-  	    clock_gettime(CLOCK_REALTIME, &time_value);
-            time_value.tv_nsec -= 200000000L;
+       {  
+ 	    clock_gettime(CLOCK_REALTIME, &time_value);
+	    time_value.tv_nsec -= 200000000L;
             memcpy(&ringBuffer.buffer[ringBuffer.head].time_value, &time_value, sizeof(struct timespec));
             ringBuffer.head = (ringBuffer.head + 1) % BUFFER_SIZE;
-            sleep(1.2);
+            usleep(1200000);
        }
    } 
     return NULL;
@@ -147,7 +145,7 @@ int main(int argc, char* argv[])
                 printf("pthread setschedpolicy failed\n");
                 goto out;
         }
-        param.sched_priority = 95;
+        param.sched_priority = 99;
         ret = pthread_attr_setschedparam(&attr, &param);
         if (ret) {
                 printf("pthread setschedparam failed\n");
