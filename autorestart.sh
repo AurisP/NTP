@@ -23,7 +23,7 @@ while true; do
     run_time=100  # 300 seconds = 5 minutes, adjust as needed
 
     # Start the program, redirect output to a file using a subshell
-    (sudo ./$program_file | tee -a "$output_file") &
+    (sudo ./$program_file | tee -a $output_file) &
 
     # Capture the PID of the program
     program_pid=$!
@@ -38,6 +38,6 @@ while true; do
     ((filename_counter++))
 
     # Restart the Raspberry Pi
-    
+    sudo reboot now 
 done
 

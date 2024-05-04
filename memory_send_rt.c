@@ -89,10 +89,11 @@ void *thread_func(void *data)
 
     while (1)
     {
-        rioXOR->Out = 0x01<<pin;
+        
+        wait_rest_of_period();
+	rioXOR->Out = 0x01<<pin;
         usleep(300000);
         rioXOR->Out = 0x01<<pin;
-        wait_rest_of_period();
     }
     return NULL;
 }
